@@ -45,6 +45,10 @@ line — the tabs then read `people`, `animals`, …)
 
 > `wtype` and `jq` are only used by the Umbriel auto-paste path — skip them if
 > you just want clipboard copying.
+>
+> **No `fzf` needed** despite what the theme suggests: `sorting-method: "fzf"`
+> in `emoji.rasi` selects Rofi's *built-in* fzf-style sort algorithm (see
+> `rofi -help`) — the external `fzf` binary is never invoked.
 
 ## Install
 
