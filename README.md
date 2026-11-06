@@ -27,7 +27,8 @@ script that never double-blinks.
 | `wtype` | auto-paste keystroke (Umbriel only) | `sudo dnf install wtype` | `sudo pacman -S wtype` |
 | `noto-color-emoji` font | rendering the grid | `sudo dnf install google-noto-color-emoji-fonts` | `sudo pacman -S noto-fonts-emoji` |
 
-Also required: **a Nerd Font** for the category tab icons ( and co).
+Also required: **a Nerd Font** for the category tab icons (the powerline/private
+glyphs in the `-modes` line of `rofi-emoji.sh`).
 `flock` (util-linux) and `bash` are assumed present.
 
 > `wtype` and `jq` are only used by the Umbriel auto-paste path — skip them if
