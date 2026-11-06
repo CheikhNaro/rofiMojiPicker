@@ -27,8 +27,20 @@ script that never double-blinks.
 | `wtype` | auto-paste keystroke (Umbriel only) | `sudo dnf install wtype` | `sudo pacman -S wtype` |
 | `noto-color-emoji` font | rendering the grid | `sudo dnf install google-noto-color-emoji-fonts` | `sudo pacman -S noto-fonts-emoji` |
 
-Also required: **a Nerd Font** for the category tab icons (the powerline/private
-glyphs in the `-modes` line of `rofi-emoji.sh`).
+Also required: **a Nerd Font for the category tabs** — each tab
+(people, animals, nature, food, activity, travel, objects, symbols, flags) is
+labelled with a private-use glyph from the `-modes` line of `rofi-emoji.sh`;
+without a Nerd Font you will see empty boxes instead of icons.
+
+```sh
+# Fedora
+sudo dnf install nerd-fonts-jetbrains-mono
+# Arch
+sudo pacman -S ttf-jetbrains-mono-nerd
+```
+
+(Prefer no extra font? Replace those glyphs with plain words in the `-modes`
+line — the tabs then read `people`, `animals`, …)
 `flock` (util-linux) and `bash` are assumed present.
 
 > `wtype` and `jq` are only used by the Umbriel auto-paste path — skip them if
@@ -37,8 +49,8 @@ glyphs in the `-modes` line of `rofi-emoji.sh`).
 ## Install
 
 ```sh
-git clone <this-repo-url> rofimojiPicker
-cd rofimojiPicker
+git clone https://github.com/CheikhNaro/rofiMojiPicker.git
+cd rofiMojiPicker
 ./install.sh
 ```
 
@@ -163,36 +175,23 @@ so it always picks up the newest colors.
 ## Regenerating the emoji data
 
 `emoji-categories/*.txt` are one line per emoji:
-`<emoji>` + tab + search keywords. To rebuild them (needs network access):
+`<emoji>` + tab + search keywords. The script rewrites the `emoji-categories/`
+folder **next to itself**, so run it on the installed copy to actually update
+your picker — stay inside `~/.config/rofi/emoji/`:
 
 ```sh
-python3 rofi/emoji/rebuild-categories.py
+cd ~/.config/rofi/emoji
+python3 rebuild-categories.py   # needs network access
 ```
 
-The script pulls Unicode CLDR (FR annotations + territory names) and Emojilib
+It pulls Unicode CLDR (FR annotations + territory names) and Emojilib
 (EN keywords) from GitHub, and the base category list from Noctalia's
 `emoji.json`. Not on Noctalia? Point the env var at an equivalent JSON
 (`{"<emoji>": {"name": "...", "category": "..."}}`):
 
 ```sh
-EMOJI_SOURCE_JSON=/path/to/emoji.json python3 rofi/emoji/rebuild-categories.py
+cd ~/.config/rofi/emoji
+EMOJI_SOURCE_JSON=/path/to/emoji.json python3 rebuild-categories.py
 ```
 
 The shipped files are ready to use — regeneration is optional maintenance.
-
-## Troubleshooting
-
-- **Nothing opens** → run the script in a terminal; if Rofi exits immediately,
-  check `rofi -dmenu -version` works on Wayland (`WAYLAND_DISPLAY` set).
-- **Empty squares instead of emojis** → install the Noto Color Emoji font (the
-  theme requests `"Noto Color Emoji 18/24"`).
-- **Tofu on the category tabs** → the tab icons are Nerd Font glyphs; install a
-  Nerd Font or replace them with plain words in the `-modes` line of
-  `rofi-emoji.sh`.
-- **Selecting copies but never pastes** → auto-paste is Umbriel-only today;
-  elsewhere paste manually (`Ctrl+V` / middle-click). To enable it on Hyprland,
-  replace the three `umbriel` calls in `rofi-emoji.sh` with
-  `hyprctl activewindow -j | jq .windowid` (target), a `layers`-equivalent wait
-  (or a fixed `sleep 0.6`), and `hyprctl dispatch focuswindow id:<windowid>`.
-- **Panel flickers open/closed** → the guards assume ~250 ms for Rofi to map;
-  on very slow setups raise `BURST_MS` in `rofi-emoji.sh`.
