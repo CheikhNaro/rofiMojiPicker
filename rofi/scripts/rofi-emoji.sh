@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# rofi-emoji.sh — wide grid emoji picker for Rofi, with category tabs
+# rofi-emoji.sh — Sélecteur d'émojis Rofi en grille large avec catégories
 # ==============================================================================
 #
-# Anti-flicker. The panel takes ~220 ms to map; a keypress within the first
-# second is an impatient double-press, not a close request. Swallowing it
-# keeps the panel open and removes the close/reopen cycle that used to look
-# like two blinks. Past BURST_MS the toggle behaves normally again: an open
-# surface is closed on the next press.
+# Anti-clignotement. Le panneau met ~220 ms à apparaître ; un appui dans la
+# seconde qui suit est un appui d'impatience, pas une demande de fermeture.
+# Avaler cet appui laisse le panneau ouvert et supprime le va-et-vient
+# fermeture/réouverture qui se voyait comme deux clignotements. Au-delà de
+# BURST_MS, la bascule redevient normale : surface ouverte → fermeture.
 #
-# The script only ever kills the rofi it launched (pid verified), never
-# somebody else's: a launcher rofi running in parallel is ignored, not killed.
+# Le script ne tue que le rofi qu'il a lancé (pid vérifié), jamais un autre :
+# un lanceur rofi ouvert en parallèle est ignoré au lieu d'être tué.
 #
-# A flock around the decision serializes near-simultaneous presses: the second
-# invocation sees the first instance's state and stays quiet.
+# Verrou flock autour de la décision : deux appuis quasi simultanés sont
+# sérialisés, le second voit l'instance du premier et se tait.
 
 set -u
 STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/rofi-emoji"
@@ -22,9 +22,9 @@ T0_FILE="$STATE_DIR/started"
 CLOSED_FILE="$STATE_DIR/closed"
 LOCK_FILE="$STATE_DIR/lock"
 
-START_GUARD_MS=400     # surface not mapped yet: closing would make no sense
-BURST_MS=2500          # impatient burst window: the press is swallowed
-CLOSE_GUARD_MS=300     # rofi takes a moment to disappear after a kill
+START_GUARD_MS=400     # surface pas encore mappée : fermer n'aurait aucun sens
+BURST_MS=2500          # rafale d'impatience : l'appui est avalé
+CLOSE_GUARD_MS=300     # rofi met un instant à disparaître après un kill
 
 now_ms() { echo $(( $(date +%s%N) / 1000000 )); }
 
@@ -57,16 +57,16 @@ if own_alive; then
     exit 0
 fi
 
-# Closed a moment ago: the user pressed while rofi was still fading out
+# Fermeture à l'instant : l'utilisateur a appuyé pendant que rofi s'en allait
 if [[ -f "$CLOSED_FILE" ]] && (( $(now_ms) - $(cat "$CLOSED_FILE" 2>/dev/null || echo 0) < CLOSE_GUARD_MS )); then
     exit 0
 fi
 
-# A rofi that is not ours holds rofi's lock: do not kill it, do not fail
-# loudly — ignore the press.
+# Un rofi qui n'est pas le nôtre tient le verrou de rofi : ne pas le tuer, ne pas
+# échouer bruyamment, ignorer l'appui.
 pgrep -x rofi >/dev/null 2>&1 && exit 0
 
-# Clean up a possibly orphaned rofi pidfile
+# Nettoyage d'un éventuel pidfile rofi orphelin
 ROFI_PID_FILE="${XDG_RUNTIME_DIR:-/run/user/$UID}/rofi.pid"
 if [[ -f "$ROFI_PID_FILE" ]]; then
     OLD=$(cat "$ROFI_PID_FILE" 2>/dev/null)
@@ -85,19 +85,18 @@ SEL_FINAL="$SEL_FILE.final"
 rm -f "$SEL_FILE" "$SEL_FINAL"
 now_ms > "$T0_FILE"
 
-# Active window before rofi: this is the auto-paste target. Refocusing it
-# explicitly avoids relying on the compositor's focus restoration (the user
-# may switch windows while selecting). Requires the `umbriel` CLI; elsewhere
-# PREV_ID stays empty and the picker only copies to the clipboard.
+# Fenêtre active avant rofi : c'est la cible du collage automatique. La
+# refocaliser explicitement évite de dépendre de la restauration de focus du
+# compositeur (l'utilisateur peut changer de fenêtre pendant la sélection).
 PREV_ID=$(umbriel windows --json 2>/dev/null | jq -r '[.[] | select(.active == true)][0].id // empty')
 
-# Launch rofi
+# Lancer rofi
 rofi \
     -modes ":${SCRIPT} people,󰏩:${SCRIPT} animals,󰾢:${SCRIPT} nature,󰶟:${SCRIPT} food,󰒸:${SCRIPT} activity,󰄋:${SCRIPT} travel,󰌵:${SCRIPT} objects,:${SCRIPT} symbols,:${SCRIPT} flags" \
     -show "" \
     -theme "$THEME" \
     -p "" \
-    -normal-window </dev/null >/dev/null 2>&1 8>&- &
+    </dev/null >/dev/null 2>&1 8>&- &
 RPID=$!
 echo "$RPID" > "$PID_FILE"
 
@@ -114,25 +113,25 @@ if [[ -f "$SEL_FILE" ]]; then
     rm -f "$SEL_FILE"
     if [[ -n "$CHOSEN" ]]; then
         printf "%s" "$CHOSEN" | wl-copy
-        # Auto-paste only after a real final selection (.final marker):
-        # an Esc after shift-accumulation keeps the clipboard without pasting.
-        # foot, kitty and wezterm all bind Ctrl+V to paste.
+        # Collage auto seulement après une vraie sélection (marqueur .final) :
+        # un Esc après accumulation Shift garde le presse-papier sans coller.
+        # foot, kitty et wezterm ont tous Ctrl+V → coller.
         if [[ -f "$SEL_FINAL" && -n "${PREV_ID:-}" ]]; then
-            # Rofi's close is animated (220 ms) and its surface keeps keyboard
-            # focus during the fade: a Ctrl+V too early lands nowhere. Wait for
-            # the rofi layer to be unmapped.
+            # La fermeture de rofi est animée (220 ms) et sa surface garde le
+            # focus clavier pendant le fondu : un Ctrl+V trop tôt part dans le
+            # vide. On attend que le calque rofi soit démonté.
             for _ in $(seq 1 30); do
                 umbriel layers --json 2>/dev/null \
                     | jq -e 'any(.[]; .namespace == "rofi" and .mapped == true)' >/dev/null \
                     || break
                 sleep 0.05
             done
-            # Keyboard focus restoration follows the layer fade (220 ms):
-            # without this margin the Ctrl+V fires before the target window
-            # receives the keyboard.
+            # La restauration du focus clavier suit le fondu du calque
+            # (220 ms) : sans cette marge, le Ctrl+V part avant que la
+            # fenêtre cible ne reçoive le clavier.
             sleep 0.35
-            # The target may have been closed while selecting: never paste
-            # blindly into whatever window took its place.
+            # La cible a pu être fermée pendant la sélection : ne pas coller
+            # à l'aveugle dans une autre fenêtre.
             if umbriel windows --json 2>/dev/null \
                 | jq -e --arg w "$PREV_ID" 'any(.[]; .id == $w)' >/dev/null; then
                 umbriel msg window-focus "$PREV_ID" 2>/dev/null

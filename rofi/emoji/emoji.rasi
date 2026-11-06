@@ -42,7 +42,7 @@ configuration {
 }
 
 window {
-    transparency:     "real";
+    transparency:     "screenshot";
     width:            820px;
     location:         south;
     anchor:           south;
