@@ -1,0 +1,184 @@
+/* ==============================================================================
+ * emoji.rasi — Rofi Emoji Picker en grille (Style Android / Gboard)
+ * ============================================================================== */
+
+@import "../colors.rasi"
+
+configuration {
+    show-icons:                  false;
+    hover-select:                true;
+    matching:                    "normal";
+    sort:                        true;
+    sorting-method:              "fzf";
+    me-select-entry:             "";
+    me-accept-entry:             "MousePrimary";
+    me-accept-custom:            "";
+
+    /* Sélection multiple à la souris : Shift+Clic (ou Clic droit) pour accumuler */
+    kb-custom-1:                 "Shift+MousePrimary,MouseSecondary";
+
+    /* Validation simple au clavier si besoin */
+    kb-accept-entry:             "Return,KP_Enter";
+    kb-accept-custom:            "";
+    kb-accept-alt:               "";
+
+    /* Masquer le label "dmenu" dans la barre de recherche */
+    display-dmenu:               "";
+
+    /* Navigation bidirectionnelle dans la grille avec les flèches */
+    kb-row-left:                 "Left";
+    kb-row-right:                "Right";
+    kb-row-up:                   "Up,Control+p";
+    kb-row-down:                 "Down,Control+n";
+    kb-move-char-back:           "Control+b";
+    kb-move-char-forward:        "Control+f";
+    kb-element-next:             "Tab";
+    kb-element-prev:             "ISO_Left_Tab";
+}
+
+* {
+    background-color: transparent;
+    text-color:       @fg;
+}
+
+window {
+    transparency:     "real";
+    width:            820px;
+    location:         south;
+    anchor:           south;
+    y-offset:         -10px;
+
+    background-color: @bg;
+    border:           2px solid;
+    border-color:     @accent;
+    border-radius:    14px;
+    padding:          16px;
+}
+
+mainbox {
+    spacing:          8px;
+    background-color: transparent;
+    children:         [ inputbar, mode-switcher, message, listview ];
+}
+
+inputbar {
+    enabled:                    true;
+    spacing:                    10px;
+    margin:                     0px 0px 10px 0px;
+    padding:                    10px 14px;
+    border:                     2px solid;
+    border-radius:              12px;
+    border-color:               @accent;
+    background-color:           @bg-alt;
+    text-color:                 @fg;
+    children:                   [ "entry" ];
+}
+
+prompt {
+    enabled:          false;
+}
+
+entry {
+    enabled:                    true;
+    padding:                    0px;
+    background-color:           inherit;
+    text-color:                 @fg;
+    cursor:                     text;
+    placeholder:                " Search...";
+    placeholder-color:          #a08c8a;
+    vertical-align:             0.5;
+    blink:                      false;
+    cursor-width:               0px;         
+    hide-cursor-on-empty:       true;
+}
+
+listview {
+    enabled:          true;
+    flow:             horizontal;
+    lines:            6;
+    columns:          10;
+    cycle:            true;
+    dynamic:          true;
+    scrollbar:        false;
+    reverse:          false;
+    fixed-height:     true;
+    fixed-columns:    true;
+
+    spacing:          8px;
+    margin:           4px 0px 0px 0px;
+    background-color: transparent;
+}
+
+/* ===== Barre de catégories ===== */
+mode-switcher {
+    enabled:          true;
+    expand:           false;
+    spacing:          6px;
+    margin:           0px 0px 4px 0px;
+    padding:          0px;
+    background-color: transparent;
+}
+
+button {
+    padding:          2px 5px 2px 0px;
+    border-radius:    8px;
+    border:           2px solid;
+    border-color:     transparent;
+    background-color: @bg-alt;
+    text-color:       @fg;
+    cursor:           pointer;
+    font:             "Noto Color Emoji 18";
+}
+
+button selected {
+    background-color: @accent;
+    border-color:     @accent;
+    text-color:       @bg;
+}
+
+/* ===== Message affichant les émojis accumulés ===== */
+message {
+    enabled:          true;
+    margin:           2px 0px 4px 0px;
+    padding:          0px;
+    background-color: transparent;
+}
+
+textbox {
+    padding:          6px 10px;
+    border-radius:    8px;
+    background-color: @bg-alt;
+    text-color:       @fg;
+    font:             "Ubuntu 11";
+    horizontal-align: 0.5;
+    vertical-align:   0.5;
+}
+
+element {
+    enabled:          true;
+    orientation:      vertical;
+    border-radius:    10px;
+    padding:          8px 0px;
+    cursor:           pointer;
+    border:           2px;
+    border-color:     transparent;
+}
+
+element normal.normal, element alternate.normal {
+    background-color: transparent;
+    text-color:       @fg;
+}
+
+element selected.normal {
+    background-color: @accent;
+    border-color:     @accent;
+    text-color:       @bg;
+}
+
+element-text {
+    font:             "Noto Color Emoji 24";
+    horizontal-align: 0.5;
+    vertical-align:   0.5;
+    cursor:           inherit;
+    text-color:       inherit;
+}
