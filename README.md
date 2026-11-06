@@ -5,8 +5,9 @@ fuzzy-ish search with bilingual FR/EN keywords, mouse or keyboard navigation,
 Shift+click to accumulate several emojis, and one keystroke from a keybind to
 open, select, and paste.
 
-No Gnome/GKB dependency — just Rofi, a data file per category, and a toggle
-script that never double-blinks.
+
+https://github.com/user-attachments/assets/429d9d01-7f28-4a0b-ba08-e6644b72d0c1
+
 
 ## Features
 
